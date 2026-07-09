@@ -1,0 +1,49 @@
+query GetDealAttributeValues($id: String!, $slug: String!) {
+  deal(id: $id) {
+    attribute(slug: $slug) {
+      __typename
+      ... on TextValue {
+        text: value
+      }
+      ... on NumberValue {
+        number: value
+      }
+      ... on CurrencyValue {
+        currency: value {
+          currency_value
+          currency_code
+        }
+      }
+      ... on RecordReferenceValue {
+        record: value {
+          __typename
+          ... on Person {
+            name {
+              full_name
+            }
+          }
+          ... on Company {
+            companyName: name
+          }
+        }
+      }
+      ... on PhoneNumberValue {
+        phoneNumber: value
+      }
+      ... on ActorReferenceValue {
+        actor: value {
+          __typename
+          ... on User {
+            name
+          }
+        }
+      }
+      ... on DateValue {
+        date: value
+      }
+      ... on TimestampValue {
+        dateTime: value
+      }
+    }
+  }
+}

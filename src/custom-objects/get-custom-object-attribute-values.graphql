@@ -1,0 +1,70 @@
+query GetCustomObjectAttributeValues($id: String!, $object: String!, $slug: String!) {
+  record(id: $id, object: $object) {
+    attribute(slug: $slug) {
+      __typename
+      ... on TextValue {
+        text: value
+      }
+      ... on NumberValue {
+        number: value
+      }
+      ... on CurrencyValue {
+        currency: value {
+          currency_value
+          currency_code
+        }
+      }
+      ... on SelectValue {
+        selectValue: value {
+          title
+        }
+      }
+      ... on RecordReferenceValue {
+        record: value {
+          __typename
+          ... on Person {
+            id
+            name {
+              first_name
+              last_name
+              full_name
+            }
+            email_addresses
+            phone_numbers
+            job_title
+            primary_location {
+              locality
+              region
+              country
+              postcode
+            }
+            company {
+              name
+            }
+          }
+          ... on Company {
+            companyName: name
+          }
+        }
+      }
+      ... on PhoneNumberValue {
+        phoneNumber: value
+      }
+      ... on ActorReferenceValue {
+        actor: value {
+          __typename
+          ... on User {
+            name
+            email
+          }
+        }
+      }
+      ... on DateValue {
+        date: value
+      }
+      ... on TimestampValue {
+        dateTime: value
+      }
+    }
+  }
+}

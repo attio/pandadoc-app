@@ -1,0 +1,18 @@
+query GetPersonAttributes {
+  people {
+    attributes(
+      types: [
+        TEXT
+        NUMBER
+        CURRENCY
+        RECORD_REFERENCE
+        PHONE_NUMBER
+        ACTOR_REFERENCE
+        DATE
+        TIMESTAMP
+      ]
+    ) {
+      slug
+    }
+  }
+}

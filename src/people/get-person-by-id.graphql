@@ -1,0 +1,20 @@
+query GetPersonById($id: String!) {
+  person(id: $id) {
+    name {
+      first_name
+      last_name
+    }
+    email_addresses
+    phone_numbers
+    job_title
+    primary_location {
+      locality
+      region
+      country
+      postcode
+    }
+    company {
+      name
+    }
+  }
+}

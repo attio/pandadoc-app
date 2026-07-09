@@ -1,0 +1,21 @@
+query GetCustomObjectAttributes {
+  objects {
+    name
+    slug
+    attributes(
+      types: [
+        TEXT
+        NUMBER
+        CURRENCY
+        RECORD_REFERENCE
+        SELECT
+        PHONE_NUMBER
+        ACTOR_REFERENCE
+        DATE
+        TIMESTAMP
+      ]
+    ) {
+      slug
+    }
+  }
+}
