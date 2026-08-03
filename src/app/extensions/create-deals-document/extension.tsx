@@ -1,17 +1,16 @@
 import {isComplete} from "@attio/fetchable"
-import type {App} from "attio"
-import {runQuery} from "attio/client"
-import {parseRecipientsFromPerson} from "../common/parse-recipient"
-import {showCreateDocumentIframe} from "../common/show-create-document-iframe"
-import checkConnection from "../utils/check-connection.server"
-import {DEAL_METADATA_KEY} from "./deal-metadata-key"
-import GetPeopleByDealIdQuery from "./get-people-by-deal-id.graphql"
-import GetDealAttributesQuery from "./get-deal-attributes.graphql"
-import GetDealAttributeValuesQuery from "./get-deal-attribute-values.graphql"
-import {camelCaseToPascalCase} from "../utils/camel-to-pascal"
-import {queryClient} from "../utils/react-query"
-import {createDealDocumentsQueryKey} from "./view-documents-action"
-import {formatDate, formatTimestamp} from "../utils/format-timestamp"
+import {runQuery, Extensions} from "attio/client"
+import {parseRecipientsFromPerson} from "../../../common/parse-recipient"
+import {showCreateDocumentIframe} from "../../../common/show-create-document-iframe"
+import checkConnection from "../../../utils/check-connection.server"
+import {DEAL_METADATA_KEY} from "../../../deals/deal-metadata-key"
+import GetPeopleByDealIdQuery from "../../../deals/get-people-by-deal-id.graphql"
+import GetDealAttributesQuery from "../../../deals/get-deal-attributes.graphql"
+import GetDealAttributeValuesQuery from "../../../deals/get-deal-attribute-values.graphql"
+import {camelCaseToPascalCase} from "../../../utils/camel-to-pascal"
+import {queryClient} from "../../../utils/react-query"
+import {createDealDocumentsQueryKey} from "../view-deals-documents/extension"
+import {formatDate, formatTimestamp} from "../../../utils/format-timestamp"
 
 const SKIPPED_ATTRIBUTE_SLUGS = ["record_id", "name"]
 
@@ -128,11 +127,12 @@ export async function showCreateDealDocumentIframe({dealId}: {dealId: string}) {
     })
 }
 
-export const createDealsDocumentAction: App.Record.Action = {
+export default Extensions.defineExtension({
+    type: "record-action",
     id: "create-deals-document",
     label: "Create document",
     objects: "deals",
     onTrigger: async ({recordId}) => {
         await showCreateDealDocumentIframe({dealId: recordId})
     },
-}
+})

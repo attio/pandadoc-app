@@ -1,11 +1,10 @@
-import type {App} from "attio"
-import {Widget} from "attio/client"
+import {Widget, Extensions} from "attio/client"
 import React from "react"
-import {DocumentsWidget} from "../common/document-widget.component"
-import getDocumentsByMetadata from "../pandadoc/get-documents-by-metadata.server"
-import {QueryClientProvider, queryClient, useSuspenseQuery} from "../utils/react-query"
-import {DEAL_METADATA_KEY} from "./deal-metadata-key"
-import {showDealDocumentsDialog} from "./view-documents-action"
+import {DocumentsWidget} from "../../../common/document-widget.component"
+import getDocumentsByMetadata from "../../../pandadoc/get-documents-by-metadata.server"
+import {QueryClientProvider, queryClient, useSuspenseQuery} from "../../../utils/react-query"
+import {DEAL_METADATA_KEY} from "../../../deals/deal-metadata-key"
+import {showDealDocumentsDialog} from "../view-deals-documents/extension"
 
 function DealsDocumentsWidget({dealId}: {dealId: string}) {
     const {data} = useSuspenseQuery({
@@ -20,7 +19,8 @@ function DealsDocumentsWidget({dealId}: {dealId: string}) {
     return <DocumentsWidget documents={data} onTrigger={() => showDealDocumentsDialog({dealId})} />
 }
 
-export const dealsDocumentsWidget: App.Record.Widget = {
+export default Extensions.defineExtension({
+    type: "record-widget",
     id: "deals-documents",
     label: "Documents",
     objects: "deals",
@@ -34,4 +34,4 @@ export const dealsDocumentsWidget: App.Record.Widget = {
             </QueryClientProvider>
         )
     },
-}
+})

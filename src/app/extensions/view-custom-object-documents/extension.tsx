@@ -1,11 +1,10 @@
-import type {App} from "attio"
-import {type ObjectSlug, showDialog} from "attio/client"
+import {type ObjectSlug, showDialog, Extensions} from "attio/client"
 
-import {DocumentsList} from "../common/document-list.component"
-import getDocumentsByMetadata from "../pandadoc/get-documents-by-metadata.server"
-import {QueryClientProvider, queryClient, useSuspenseQuery} from "../utils/react-query"
-import {showCreateCustomObjectDocumentIframe} from "./create-document-action"
-import {CUSTOM_OBJECT_METADATA_KEY} from "./custom-object-metadata-key"
+import {DocumentsList} from "../../../common/document-list.component"
+import getDocumentsByMetadata from "../../../pandadoc/get-documents-by-metadata.server"
+import {QueryClientProvider, queryClient, useSuspenseQuery} from "../../../utils/react-query"
+import {showCreateCustomObjectDocumentIframe} from "../create-custom-object-documents/extension"
+import {CUSTOM_OBJECT_METADATA_KEY} from "../../../custom-objects/custom-object-metadata-key"
 
 export function createCustomObjectDocumentsQueryKey(object: ObjectSlug, recordId: string) {
     return ["custom-object-documents", object, recordId]
@@ -48,11 +47,12 @@ export async function showCustomObjectDocumentsDialog({
     })
 }
 
-export const viewCustomObjectDocumentsAction: App.Record.Action = {
+export default Extensions.defineExtension({
+    type: "record-action",
     id: "view-custom-object-documents",
     label: "View documents",
     objects: ({isStandard}) => !isStandard,
     onTrigger: async ({object, recordId}) => {
         showCustomObjectDocumentsDialog({object, recordId})
     },
-}
+})

@@ -1,16 +1,15 @@
 import {isErrored} from "@attio/fetchable"
-import type {App} from "attio"
-import {runQuery, showToast} from "attio/client"
-import {parseRecipientsFromPerson} from "../common/parse-recipient"
-import {showCreateDocumentIframe} from "../common/show-create-document-iframe"
-import checkConnection from "../utils/check-connection.server"
-import GetPersonQuery from "./get-person-by-id.graphql"
-import GetPersonAttributesQuery from "./get-person-attributes.graphql"
-import GetPersonAttributeValuesQuery from "./get-person-attribute-values.graphql"
-import {camelCaseToPascalCase} from "../utils/camel-to-pascal"
-import {queryClient} from "../utils/react-query"
-import {createPersonDocumentsQueryKey} from "./view-documents-action"
-import {formatDate, formatTimestamp} from "../utils/format-timestamp"
+import {runQuery, showToast, Extensions} from "attio/client"
+import {parseRecipientsFromPerson} from "../../../common/parse-recipient"
+import {showCreateDocumentIframe} from "../../../common/show-create-document-iframe"
+import checkConnection from "../../../utils/check-connection.server"
+import GetPersonQuery from "../../../people/get-person-by-id.graphql"
+import GetPersonAttributesQuery from "../../../people/get-person-attributes.graphql"
+import GetPersonAttributeValuesQuery from "../../../people/get-person-attribute-values.graphql"
+import {camelCaseToPascalCase} from "../../../utils/camel-to-pascal"
+import {queryClient} from "../../../utils/react-query"
+import {createPersonDocumentsQueryKey} from "../view-people-documents/extension"
+import {formatDate, formatTimestamp} from "../../../utils/format-timestamp"
 
 const SKIPPED_ATTRIBUTE_SLUGS = [
     "record_id",
@@ -152,11 +151,12 @@ export async function showCreatePersonDocumentIframe({personId}: {personId: stri
     })
 }
 
-export const createPeopleDocumentAction: App.Record.Action = {
+export default Extensions.defineExtension({
+    type: "record-action",
     id: "create-people-document",
     label: "Create document",
     objects: "people",
     onTrigger: async ({recordId}) => {
         await showCreatePersonDocumentIframe({personId: recordId})
     },
-}
+})

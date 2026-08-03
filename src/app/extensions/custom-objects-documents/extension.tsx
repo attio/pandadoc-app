@@ -1,11 +1,10 @@
-import type {App} from "attio"
-import {type ObjectSlug, Widget} from "attio/client"
+import {type ObjectSlug, Widget, Extensions} from "attio/client"
 import React from "react"
-import {DocumentsWidget} from "../common/document-widget.component"
-import getDocumentsByMetadata from "../pandadoc/get-documents-by-metadata.server"
-import {QueryClientProvider, queryClient, useSuspenseQuery} from "../utils/react-query"
-import {CUSTOM_OBJECT_METADATA_KEY} from "./custom-object-metadata-key"
-import {showCustomObjectDocumentsDialog} from "./view-documents-action"
+import {DocumentsWidget} from "../../../common/document-widget.component"
+import getDocumentsByMetadata from "../../../pandadoc/get-documents-by-metadata.server"
+import {QueryClientProvider, queryClient, useSuspenseQuery} from "../../../utils/react-query"
+import {CUSTOM_OBJECT_METADATA_KEY} from "../../../custom-objects/custom-object-metadata-key"
+import {showCustomObjectDocumentsDialog} from "../view-custom-object-documents/extension"
 
 function CustomObjectsDocumentsWidget({object, recordId}: {object: ObjectSlug; recordId: string}) {
     const {data} = useSuspenseQuery({
@@ -25,7 +24,8 @@ function CustomObjectsDocumentsWidget({object, recordId}: {object: ObjectSlug; r
     )
 }
 
-export const customObjectsDocumentsWidget: App.Record.Widget = {
+export default Extensions.defineExtension({
+    type: "record-widget",
     id: "custom-objects-documents",
     label: "Documents",
     color: "#278367",
@@ -39,4 +39,4 @@ export const customObjectsDocumentsWidget: App.Record.Widget = {
         )
     },
     objects: ({isStandard}) => !isStandard,
-}
+})

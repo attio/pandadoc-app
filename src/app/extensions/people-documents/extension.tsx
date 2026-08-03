@@ -1,11 +1,10 @@
-import type {App} from "attio"
-import {useQuery, Widget} from "attio/client"
+import {useQuery, Widget, Extensions} from "attio/client"
 import React from "react"
-import {DocumentsWidget} from "../common/document-widget.component"
-import getDocumentsByEmails from "../pandadoc/get-documents-by-emails.server"
-import {QueryClientProvider, queryClient, useSuspenseQuery} from "../utils/react-query"
-import GetPersonByIdQuery from "./get-person-by-id.graphql"
-import {showPersonDocumentsDialog} from "./view-documents-action"
+import {DocumentsWidget} from "../../../common/document-widget.component"
+import getDocumentsByEmails from "../../../pandadoc/get-documents-by-emails.server"
+import {QueryClientProvider, queryClient, useSuspenseQuery} from "../../../utils/react-query"
+import GetPersonByIdQuery from "../../../people/get-person-by-id.graphql"
+import {showPersonDocumentsDialog} from "../view-people-documents/extension"
 
 function PeopleDocumentsWidget({recordId}: {recordId: string}) {
     const {person} = useQuery(GetPersonByIdQuery, {
@@ -27,7 +26,8 @@ function PeopleDocumentsWidget({recordId}: {recordId: string}) {
     )
 }
 
-export const peopleDocumentsWidget: App.Record.Widget = {
+export default Extensions.defineExtension({
+    type: "record-widget",
     id: "people-documents",
     label: "Documents",
     objects: "people",
@@ -41,4 +41,4 @@ export const peopleDocumentsWidget: App.Record.Widget = {
             </QueryClientProvider>
         )
     },
-}
+})

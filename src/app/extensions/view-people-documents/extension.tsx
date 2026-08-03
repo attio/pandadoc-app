@@ -1,11 +1,10 @@
-import type {App} from "attio"
-import {runQuery, showDialog, showToast} from "attio/client"
+import {runQuery, showDialog, showToast, Extensions} from "attio/client"
 
-import {DocumentsList} from "../common/document-list.component"
-import getDocumentsByEmails from "../pandadoc/get-documents-by-emails.server"
-import {QueryClientProvider, queryClient, useSuspenseQuery} from "../utils/react-query"
-import {showCreatePersonDocumentIframe} from "./create-document-action"
-import GetPersonByIdQuery from "./get-person-by-id.graphql"
+import {DocumentsList} from "../../../common/document-list.component"
+import getDocumentsByEmails from "../../../pandadoc/get-documents-by-emails.server"
+import {QueryClientProvider, queryClient, useSuspenseQuery} from "../../../utils/react-query"
+import {showCreatePersonDocumentIframe} from "../create-people-document/extension"
+import GetPersonByIdQuery from "../../../people/get-person-by-id.graphql"
 
 export function createPersonDocumentsQueryKey(contactEmails: string[]) {
     return ["person-documents", contactEmails.join(",")]
@@ -49,7 +48,8 @@ export function showPersonDocumentsDialog({
     })
 }
 
-export const viewPeopleDocumentsAction: App.Record.Action = {
+export default Extensions.defineExtension({
+    type: "record-action",
     id: "view-people-documents",
     label: "View documents",
     objects: "people",
@@ -71,4 +71,4 @@ export const viewPeopleDocumentsAction: App.Record.Action = {
 
         showPersonDocumentsDialog({personId: recordId, contactEmails})
     },
-}
+})

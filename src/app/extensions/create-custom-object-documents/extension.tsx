@@ -1,15 +1,14 @@
-import type {App} from "attio"
-import {type ObjectSlug, runQuery} from "attio/client"
-import {showCreateDocumentIframe} from "../common/show-create-document-iframe"
-import checkConnection from "../utils/check-connection.server"
-import {CUSTOM_OBJECT_METADATA_KEY} from "./custom-object-metadata-key"
-import GetCustomObjectAttributesQuery from "./get-custom-object-attributes.graphql"
-import GetCustomObjectAttributeValuesQuery from "./get-custom-object-attribute-values.graphql"
-import {camelCaseToPascalCase} from "../utils/camel-to-pascal"
-import {queryClient} from "../utils/react-query"
-import {createCustomObjectDocumentsQueryKey} from "./view-documents-action"
-import {formatDate, formatTimestamp} from "../utils/format-timestamp"
-import {parseRecipientsFromPerson, type Recipient} from "../common/parse-recipient"
+import {type ObjectSlug, runQuery, Extensions} from "attio/client"
+import {showCreateDocumentIframe} from "../../../common/show-create-document-iframe"
+import checkConnection from "../../../utils/check-connection.server"
+import {CUSTOM_OBJECT_METADATA_KEY} from "../../../custom-objects/custom-object-metadata-key"
+import GetCustomObjectAttributesQuery from "../../../custom-objects/get-custom-object-attributes.graphql"
+import GetCustomObjectAttributeValuesQuery from "../../../custom-objects/get-custom-object-attribute-values.graphql"
+import {camelCaseToPascalCase} from "../../../utils/camel-to-pascal"
+import {queryClient} from "../../../utils/react-query"
+import {createCustomObjectDocumentsQueryKey} from "../view-custom-object-documents/extension"
+import {formatDate, formatTimestamp} from "../../../utils/format-timestamp"
+import {parseRecipientsFromPerson, type Recipient} from "../../../common/parse-recipient"
 import {isComplete} from "@attio/fetchable"
 
 const SKIPPED_ATTRIBUTE_SLUGS = ["record_id"]
@@ -111,11 +110,12 @@ export async function showCreateCustomObjectDocumentIframe({
     })
 }
 
-export const createCustomObjectDocumentAction: App.Record.Action = {
+export default Extensions.defineExtension({
+    type: "record-action",
     id: "create-custom-object-documents",
     label: "Create document",
     onTrigger: async ({object, recordId}) => {
         await showCreateCustomObjectDocumentIframe({object, recordId})
     },
     objects: ({isStandard}) => !isStandard,
-}
+})
