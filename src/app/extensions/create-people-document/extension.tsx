@@ -6,6 +6,7 @@ import checkConnection from "../../../utils/check-connection.server"
 import GetPersonQuery from "../../../people/get-person-by-id.graphql"
 import GetPersonAttributesQuery from "../../../people/get-person-attributes.graphql"
 import GetPersonAttributeValuesQuery from "../../../people/get-person-attribute-values.graphql"
+import {getDefaultPersonTokens} from "../../../people/get-default-person-tokens"
 import {camelCaseToPascalCase} from "../../../utils/camel-to-pascal"
 import {queryClient} from "../../../utils/react-query"
 import {createPersonDocumentsQueryKey} from "../view-people-documents/extension"
@@ -76,6 +77,8 @@ export async function showCreatePersonDocumentIframe({personId}: {personId: stri
         return
     }
 
+    const defaultTokens = getDefaultPersonTokens(person)
+
     const attributeValues = await Promise.all(
         attributes
             .filter((attribute) => !SKIPPED_ATTRIBUTE_SLUGS.includes(attribute.slug))
@@ -126,16 +129,13 @@ export async function showCreatePersonDocumentIframe({personId}: {personId: stri
             })
     )
 
-    const tokens = attributeValues.reduce(
-        (acc, [slug, value]) => {
-            if (value === null || value === undefined) {
-                return acc
-            }
-            acc[`Attio.Person${camelCaseToPascalCase(slug)}`] = value.toString()
+    const tokens = attributeValues.reduce((acc, [slug, value]) => {
+        if (value === null || value === undefined) {
             return acc
-        },
-        {} as Record<string, string>
-    )
+        }
+        acc[`Attio.Person${camelCaseToPascalCase(slug)}`] = value.toString()
+        return acc
+    }, defaultTokens)
 
     await showCreateDocumentIframe({
         recipients: recipientsResult.value,

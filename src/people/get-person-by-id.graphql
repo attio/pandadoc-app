@@ -3,6 +3,7 @@ query GetPersonById($id: String!) {
     name {
       first_name
       last_name
+      full_name
     }
     email_addresses
     phone_numbers

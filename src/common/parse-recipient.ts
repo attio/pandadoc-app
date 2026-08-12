@@ -1,5 +1,4 @@
 import {complete, errored, type Result} from "@attio/fetchable"
-import type {GetPersonByIdQuery as GetPersonByIdQueryType} from "../people/get-person-by-id.graphql"
 
 export type Recipient = {
     first_name: string
@@ -13,8 +12,21 @@ export type Recipient = {
     city?: string
 }
 
+export type PersonForRecipient = {
+    email_addresses: Array<string>
+    phone_numbers: Array<string>
+    name: {first_name: string | null; last_name: string | null} | null
+    primary_location: {
+        locality: string | null
+        region: string | null
+        country: string | null
+        postcode: string | null
+    } | null
+    company: {name: string | null} | null
+} | null
+
 export function parseRecipientsFromPerson(
-    person: GetPersonByIdQueryType["person"]
+    person: PersonForRecipient
 ): Result<
     Array<Recipient>,
     | "PERSON_NOT_FOUND"
