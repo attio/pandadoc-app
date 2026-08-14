@@ -11,7 +11,7 @@ export default async function getDocumentsByEmails(
     const contactsResponse = await Promise.all(
         emails.map(async (email) => {
             const contactResponse = await callPandadocApi({
-                path: `contacts?email=${email}`,
+                path: `contacts?email=${encodeURIComponent(email)}`,
                 method: "GET",
             })
 
