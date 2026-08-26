@@ -38,6 +38,12 @@ export async function showCreateDocumentIframe({
                     title: "Successfully created document",
                 })
                 hideIframe()
+            } else if (message.type === "document-created") {
+                // The document has been created from the chosen template. The
+                // embedded editor cannot run template workflow steps such as
+                // collecting a payment, so the user finishes it in PandaDoc and
+                // this closes the builder behind them.
+                hideIframe()
             }
         },
     })
