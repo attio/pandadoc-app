@@ -1,5 +1,6 @@
-import {showIframe, showToast} from "attio/client"
+import {Settings, showIframe, showToast} from "attio/client"
 import type {Recipient} from "./parse-recipient"
+import schema from "../app/settings/schema"
 
 export async function showCreateDocumentIframe({
     recipients,
@@ -10,6 +11,8 @@ export async function showCreateDocumentIframe({
     tokens: Record<string, string>
     metadata?: Record<string, string>
 }) {
+    const openDocumentsInNewTab = await Settings.getSettings(schema, "openDocumentsInNewTab")
+
     await showIframe({
         url: "https://pandadoc.attio-embedded-apps.com",
         // Use this for working in development Attio:
@@ -31,6 +34,7 @@ export async function showCreateDocumentIframe({
                         tokens,
                         metadata,
                     },
+                    openInNewTab: openDocumentsInNewTab ?? false,
                 })
             } else if (message.type === "success") {
                 showToast({
@@ -39,10 +43,9 @@ export async function showCreateDocumentIframe({
                 })
                 hideIframe()
             } else if (message.type === "document-created") {
-                // The document has been created from the chosen template. The
-                // embedded editor cannot run template workflow steps such as
-                // collecting a payment, so the user finishes it in PandaDoc and
-                // this closes the builder behind them.
+                // Only sent when the document was opened in a new tab, so close the
+                // builder behind it. Otherwise the member keeps working in the embed
+                // and the builder stays open.
                 hideIframe()
             }
         },
