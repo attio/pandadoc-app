@@ -1,7 +1,7 @@
 import {type ObjectSlug, Widget, Extensions} from "attio/client"
 import React from "react"
 import {DocumentsWidget} from "../../../common/document-widget.component"
-import getDocumentsByMetadata from "../../../pandadoc/get-documents-by-metadata.server"
+import getDocumentsByMetadata from "../../server-functions/get-documents-by-metadata.server"
 import {QueryClientProvider, queryClient, useSuspenseQuery} from "../../../utils/react-query"
 import {CUSTOM_OBJECT_METADATA_KEY} from "../../../custom-objects/custom-object-metadata-key"
 import {showCustomObjectDocumentsDialog} from "../view-custom-object-documents/extension"

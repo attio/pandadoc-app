@@ -1,7 +1,7 @@
 import {useQuery, Widget, Extensions} from "attio/client"
 import React from "react"
 import {DocumentsWidget} from "../../../common/document-widget.component"
-import getDocumentsByEmails from "../../../pandadoc/get-documents-by-emails.server"
+import getDocumentsByEmails from "../../server-functions/get-documents-by-emails.server"
 import {QueryClientProvider, queryClient, useSuspenseQuery} from "../../../utils/react-query"
 import GetPersonByIdQuery from "../../../people/get-person-by-id.graphql"
 import {showPersonDocumentsDialog} from "../view-people-documents/extension"

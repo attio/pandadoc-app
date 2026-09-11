@@ -12,6 +12,7 @@ Create, send, and review PandaDoc documents without leaving Attio. The integrati
 - **View documents** — open the list of PandaDoc documents linked to the current record.
 - **Document widgets** — a record widget shows each record's associated PandaDoc documents and their current status.
 - **Multi-object support** — works across Deals, People, and custom objects.
+- **Workflow trigger** — start a workflow when a PandaDoc document's status changes (Completed, Viewed, Declined, Sent, Voided).
 
 ## Setup
 
@@ -42,8 +43,9 @@ pnpm run dev
 
 | Path                  | Description                                                                                                          |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `src/app.ts`          | App manifest — registers record actions and record widgets.                                                         |
-| `src/pandadoc/`       | PandaDoc REST API client, server-side document fetchers, and Zod schemas.                                           |
+| `src/app/blocks/document-status-changed/` | Workflow trigger block — starts a run when a PandaDoc document changes status.               |
+| `src/app/server-functions/` | Thin `.server.ts` bridges between client-side callers and `src/pandadoc/`'s `AsyncResult`-returning functions. |
+| `src/pandadoc/`       | PandaDoc REST API client (`@attio/fetchable`), server-side document fetchers, and Zod schemas.                      |
 | `src/common/`         | Shared UI + logic: document list/widget components, the create-document iframe launcher, recipient parsing, status helpers. |
 | `src/deals/`          | Deal record actions + widget and the GraphQL queries used to read deal data.                                        |
 | `src/people/`         | Person record actions + widget and the GraphQL queries used to read person data.                                    |

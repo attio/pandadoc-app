@@ -1,7 +1,7 @@
 import {showDialog, Extensions} from "attio/client"
 
 import {DocumentsList} from "../../../common/document-list.component"
-import getDocumentsByMetadata from "../../../pandadoc/get-documents-by-metadata.server"
+import getDocumentsByMetadata from "../../server-functions/get-documents-by-metadata.server"
 import {QueryClientProvider, queryClient, useSuspenseQuery} from "../../../utils/react-query"
 import {showCreateDealDocumentIframe} from "../create-deals-document/extension"
 import {DEAL_METADATA_KEY} from "../../../deals/deal-metadata-key"

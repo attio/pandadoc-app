@@ -9,6 +9,8 @@ export const contactsResponseSchema = z.object({
     results: z.array(contactSchema),
 })
 
+export type PandadocContact = z.infer<typeof contactSchema>
+
 const documentSchema = z.object({
     id: z.string(),
     name: z.string(),
@@ -35,3 +37,19 @@ export const documentsResponseSchema = z.object({
 })
 
 export type PandadocDocument = z.infer<typeof documentSchema>
+
+const templateSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+})
+
+export const templatesResponseSchema = z.object({
+    results: z.array(templateSchema),
+})
+
+export type PandadocTemplate = z.infer<typeof templateSchema>
+
+export const webhookSubscriptionResponseSchema = z.object({
+    uuid: z.string(),
+    shared_key: z.string(),
+})
