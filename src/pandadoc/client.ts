@@ -29,17 +29,9 @@ async function request<T>(
             : await getUserConnection()
 
     try {
-        // The user connection is an OAuth token (per-user, PandaDoc's "Bearer" scheme). The
-        // workspace connection is a PandaDoc API key (workspace-wide, PandaDoc's "API-Key" scheme)
-        // — the two are not interchangeable.
-        // @see https://developers.pandadoc.com/reference/api-key-authentication-process
-        const authorizationHeader =
-            options?.connection === "workspace-connection"
-                ? `API-Key ${resolvedConnection.value}`
-                : `Bearer ${resolvedConnection.value}`
-
+        // Both the user and workspace connections are PandaDoc OAuth tokens.
         const headers: Record<string, string> = {
-            Authorization: authorizationHeader,
+            Authorization: `Bearer ${resolvedConnection.value}`,
         }
 
         const init: RequestInit = {method, headers}

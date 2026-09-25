@@ -116,7 +116,7 @@ export function pandadocErrorMessage(error: PandadocApiError): string {
         case "UNAUTHORIZED":
             return "PandaDoc authentication failed. Reconnect PandaDoc and try again."
         case "FORBIDDEN":
-            return "Your PandaDoc connection doesn't have permission for this. Check the API key's scopes and try again."
+            return "Your PandaDoc connection doesn't have permission for this. Reconnect PandaDoc with the required permissions and try again."
         case "NOT_FOUND":
             return "PandaDoc could not find the requested resource."
         case "RATE_LIMITED":

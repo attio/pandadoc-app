@@ -52,7 +52,7 @@ The App SDK is a set of components and functionality to build apps that are embe
 
 - **Service:** PandaDoc (document automation / e-signature).
 - **API:** REST — `https://api.pandadoc.com/public/v1` (docs: https://developers.pandadoc.com).
-- **Auth:** mixed. Document/contact calls use the user connection (`getUserConnection()`), matching who's acting on the record; PandaDoc treats this as an OAuth token, so these calls send `Authorization: Bearer <connection.value>`. Template listing and webhook-subscription calls (used by the trigger block's configurator and webhook lifecycle) use the workspace connection (`getWorkspaceConnection()`) instead, since the trigger block doesn't require a user connection and PandaDoc webhook subscriptions are workspace-scoped resources that shouldn't depend on one specific user's connection staying valid — that connection holds a PandaDoc API key, not an OAuth token, so `client.ts` sends it as `Authorization: API-Key <connection.value>`. The two schemes are not interchangeable; don't unify them. `pandadocApi` in `src/pandadoc/client.ts` takes a `connection: "user-connection" | "workspace-connection"` option (defaults to user) to pick between them.
+- **Auth:** OAuth for both connections, sent as `Authorization: Bearer <connection.value>`. Document/contact calls use the user connection (`getUserConnection()`), matching who's acting on the record. Template listing and webhook-subscription calls (used by the trigger block's configurator and webhook lifecycle) use the workspace connection (`getWorkspaceConnection()`) instead, since the trigger block doesn't require a user connection and PandaDoc webhook subscriptions are workspace-scoped resources that shouldn't depend on one specific user's connection staying valid. `pandadocApi` in `src/pandadoc/client.ts` takes a `connection: "user-connection" | "workspace-connection"` option (defaults to user) to pick between them.
 - **Document builder:** rendered via `showIframe` from a hosted embed (`https://pandadoc.attio-embedded-apps.com`), which posts messages back to the app for recipients/tokens and close events.
 
 ## Environment
@@ -134,7 +134,7 @@ If you are unsure about an import, always check explicitly and do not guess.
 
 - Never dump raw JSON, HTTP status codes, or square brackets in UI error messages.
 - Never expose transport-layer details — say "An unexpected error occurred when calling PandaDoc's API" not "503 from PandaDoc".
-- Auth errors MUST tell the user how to fix the connection (e.g. reconnect PandaDoc, or check that the API key is valid).
+- Auth errors MUST tell the user how to fix the connection (e.g. reconnect PandaDoc).
 
 ### Testing
 
