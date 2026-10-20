@@ -87,16 +87,15 @@ export async function showCreateDealDocumentIframe({dealId}: {dealId: string}) {
     const dealOwner = deal?.owner
 
     if (dealOwner && dealOwner.__typename === "User") {
-        const [firstName, lastName] = dealOwner.name.split(" ")
         recipients.push({
-            first_name: firstName ?? "",
-            last_name: lastName ?? "",
+            first_name: dealOwner.first_name,
+            last_name: dealOwner.last_name,
             email: dealOwner.email,
         })
     }
 
     const [ownerFirstName, ownerLastName] =
-        deal?.owner?.__typename === "User" ? deal.owner.name.split(" ") : ["", ""]
+        dealOwner?.__typename === "User" ? [dealOwner.first_name, dealOwner.last_name] : ["", ""]
 
     const defaultTokens: Record<string, string> = {
         ...(ownerFirstName ? {"Attio.DealOwnerFirstName": ownerFirstName} : {}),
