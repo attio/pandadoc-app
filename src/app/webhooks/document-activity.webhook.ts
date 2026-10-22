@@ -5,6 +5,7 @@ import {
     activityWebhookProcessedEventKvKey,
 } from "../../activities/activity-webhook"
 import {
+    DOCUMENT_COMPLETED_ACTIVITY_SLUG,
     DOCUMENT_DECLINED_ACTIVITY_SLUG,
     DOCUMENT_OPENED_ACTIVITY_SLUG,
 } from "../../activities/activity-definitions"
@@ -28,6 +29,7 @@ const logger = createLogger("pandadoc document-activity webhook")
 const ACTIVITY_SLUG_BY_STATUS: Record<string, string> = {
     "document.viewed": DOCUMENT_OPENED_ACTIVITY_SLUG,
     "document.declined": DOCUMENT_DECLINED_ACTIVITY_SLUG,
+    "document.completed": DOCUMENT_COMPLETED_ACTIVITY_SLUG,
 }
 
 /** Logs the activity for one event. Events that aren't logged, or don't parse, are skipped. */

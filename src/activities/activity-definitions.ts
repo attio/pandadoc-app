@@ -17,6 +17,7 @@ export type ActivityDefinition = {
 export const DOCUMENT_OPENED_ACTIVITY_SLUG = "pandadoc_document_opens"
 export const RECIPIENT_COMPLETED_ACTIVITY_SLUG = "pandadoc_document_recipient_completions"
 export const DOCUMENT_DECLINED_ACTIVITY_SLUG = "pandadoc_document_declines"
+export const DOCUMENT_COMPLETED_ACTIVITY_SLUG = "pandadoc_document_completions"
 
 const DOCUMENT_ATTRIBUTES: AttributeDefinition[] = [
     {
@@ -75,7 +76,7 @@ export const ACTIVITY_DEFINITIONS: ActivityDefinition[] = [
         attributes: DOCUMENT_ATTRIBUTES,
     },
     {
-        apiSlug: "pandadoc_document_completions",
+        apiSlug: DOCUMENT_COMPLETED_ACTIVITY_SLUG,
         singularNoun: "Document completion",
         pluralNoun: "Document completions",
         extends: "activities",

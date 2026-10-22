@@ -68,6 +68,7 @@ describe(documentActivityWebhook, () => {
     it.each([
         {status: "document.viewed", activitySlug: "pandadoc_document_opens"},
         {status: "document.declined", activitySlug: "pandadoc_document_declines"},
+        {status: "document.completed", activitySlug: "pandadoc_document_completions"},
     ])(
         "logs a $activitySlug activity for a document that changed to $status",
         async ({status, activitySlug}) => {

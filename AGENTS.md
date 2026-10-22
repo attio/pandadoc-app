@@ -37,6 +37,7 @@ The App SDK is a set of components and functionality to build apps that are embe
 - **Webhook handler** — `document-activity` (`src/app/webhooks/document-activity.webhook.ts`) receives that subscription's deliveries and verifies the `signature` query param against the subscription's shared key in `kv`. It writes one activity record per event that maps to an activity. `document_state_changed` events are written by `src/activities/log-document-activity.ts`:
   - `pandadoc_document_opens` — the document changed to `document.viewed`.
   - `pandadoc_document_declines` — the document changed to `document.declined`.
+  - `pandadoc_document_completions` — the document changed to `document.completed`.
 
   These are timestamped with the document's `date_modified`. `recipient_completed` events are written by `src/activities/log-recipient-completed-activity.ts` as a `pandadoc_document_recipient_completions` activity. PandaDoc only says the recipient finished their part, not whether they signed or approved, so the recipient's `recipient_type` (signer, approver, ...) is stored instead. `action_by` only carries the recipient's email (its `id` isn't their recipient id), so their type and roles come from the entry in `recipients` with the same email, and are left out when there's none. The activity is timestamped with the event's `action_date`, and its `recipient` (a person reference) says who completed. That recipient is always created as a person when they aren't one yet, even when the write is sent again linking only existing people (see below).
 
