@@ -10,9 +10,8 @@ import {DEAL_METADATA_KEY} from "../deals/deal-metadata-key"
 import {endpoints as pandadocEndpoints} from "../pandadoc/endpoints"
 import type {WebhookDocument} from "../pandadoc/webhook-payload-schema"
 import {createLogger} from "../utils/logger"
-import {DOCUMENT_OPENED_ACTIVITY_SLUG} from "./activity-definitions"
 
-const logger = createLogger("log document opened")
+const logger = createLogger("log document activity")
 
 type IfUnmatched = "create" | "ignore"
 
@@ -66,20 +65,22 @@ function findLinkedRecords(document: WebhookDocument, ifUnmatched: IfUnmatched):
     return linkedRecords
 }
 
-function writeOpenedActivity({
+function writeDocumentActivity({
+    activitySlug,
     document,
-    openedAt,
+    occurredAt,
     linkedRecords,
 }: {
+    activitySlug: string
     document: WebhookDocument
-    openedAt: Date
+    occurredAt: Date
     linkedRecords: LinkedRecord[]
 }): AsyncResult<unknown, AttioApiError> {
-    return attioClient.post(endpoints.api.activityRecords(DOCUMENT_OPENED_ACTIVITY_SLUG), {
+    return attioClient.post(endpoints.api.activityRecords(activitySlug), {
         data: {
             values: {
                 title: document.name,
-                timestamp: openedAt.toISOString(),
+                timestamp: occurredAt.toISOString(),
                 linked_records: linkedRecords,
                 document_url: pandadocEndpoints.documentWebUrl(document.id),
             },
@@ -88,33 +89,36 @@ function writeOpenedActivity({
 }
 
 /**
- * Writes a `pandadoc_document_opens` activity onto the document's Attio records, creating a
+ * Writes an activity record of the given type onto the document's Attio records, creating a
  * person for each recipient who isn't one yet. Does nothing when the document has no linked
  * record or recipient, since an activity needs at least one linked record.
  */
-export async function logDocumentOpened({
+export async function logDocumentActivity({
+    activitySlug,
     document,
-    openedAt,
+    occurredAt,
 }: {
+    activitySlug: string
     document: WebhookDocument
-    openedAt: Date
+    occurredAt: Date
 }): AsyncResult<void, AttioApiError> {
     const linkedRecords = findLinkedRecords(document, "create")
 
     if (linkedRecords.length === 0) {
-        logger.log("No Attio record to link the opened document to, skipping")
+        logger.log("No Attio record to link the document activity to, skipping")
         return complete(undefined)
     }
 
-    let created = await writeOpenedActivity({document, openedAt, linkedRecords})
+    let created = await writeDocumentActivity({activitySlug, document, occurredAt, linkedRecords})
 
     // Attio rejects a write that would create more referenced records than its per-request
     // limit, so link only the recipients who are already people.
     if (isErrored(created) && created.error.code === "LIMIT_REACHED") {
         logger.log("Too many recipients to create as people, linking only existing people")
-        created = await writeOpenedActivity({
+        created = await writeDocumentActivity({
+            activitySlug,
             document,
-            openedAt,
+            occurredAt,
             linkedRecords: findLinkedRecords(document, "ignore"),
         })
     }

@@ -15,6 +15,7 @@ export type ActivityDefinition = {
 }
 
 export const DOCUMENT_OPENED_ACTIVITY_SLUG = "pandadoc_document_opens"
+export const DOCUMENT_DECLINED_ACTIVITY_SLUG = "pandadoc_document_declines"
 
 const DOCUMENT_ATTRIBUTES: AttributeDefinition[] = [
     {
@@ -66,7 +67,7 @@ export const ACTIVITY_DEFINITIONS: ActivityDefinition[] = [
         ],
     },
     {
-        apiSlug: "pandadoc_document_declines",
+        apiSlug: DOCUMENT_DECLINED_ACTIVITY_SLUG,
         singularNoun: "Document decline",
         pluralNoun: "Document declines",
         extends: "activities",

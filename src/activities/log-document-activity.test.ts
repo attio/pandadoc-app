@@ -4,9 +4,9 @@ import {beforeEach, describe, expect, it, vi} from "vitest"
 const {attioClient} = vi.hoisted(() => ({attioClient: {post: vi.fn()}}))
 vi.mock("../attio/client", () => ({attioClient}))
 
-import {logDocumentOpened} from "./log-document-opened"
+import {logDocumentActivity} from "./log-document-activity"
 
-const openedAt = new Date("2026-09-25T10:00:00.000Z")
+const occurredAt = new Date("2026-09-25T10:00:00.000Z")
 
 const document = {
     id: "doc-1",
@@ -28,19 +28,20 @@ const recipientReference = (ifUnmatched: "create" | "ignore") => ({
     },
 })
 
-describe(logDocumentOpened, () => {
+describe(logDocumentActivity, () => {
     beforeEach(() => {
         attioClient.post.mockReset()
         attioClient.post.mockResolvedValue(complete({}))
     })
 
     it("links the deal, the custom-object record and a person for each recipient", async () => {
-        await logDocumentOpened({
+        await logDocumentActivity({
             document: {
                 ...document,
                 metadata: {"attio.deal_id": "deal-1", "attio.custom_object": "projects.rec-1"},
             },
-            openedAt,
+            activitySlug: "pandadoc_document_opens",
+            occurredAt,
         })
 
         expect(postedLinkedRecords()).toEqual([
@@ -53,7 +54,11 @@ describe(logDocumentOpened, () => {
     it("links only existing people when Attio rejects creating that many", async () => {
         attioClient.post.mockResolvedValueOnce(errored({code: "LIMIT_REACHED"}))
 
-        const result = await logDocumentOpened({document, openedAt})
+        const result = await logDocumentActivity({
+            activitySlug: "pandadoc_document_opens",
+            document,
+            occurredAt,
+        })
 
         expect(result).toEqual(complete(undefined))
         expect(attioClient.post).toHaveBeenCalledTimes(2)
@@ -64,14 +69,22 @@ describe(logDocumentOpened, () => {
     it("returns any other write error without trying again", async () => {
         attioClient.post.mockResolvedValueOnce(errored({code: "INVALID_REQUEST"}))
 
-        const result = await logDocumentOpened({document, openedAt})
+        const result = await logDocumentActivity({
+            activitySlug: "pandadoc_document_opens",
+            document,
+            occurredAt,
+        })
 
         expect(result).toEqual(errored({code: "INVALID_REQUEST"}))
         expect(attioClient.post).toHaveBeenCalledTimes(1)
     })
 
     it("writes nothing when the document has no linked record or recipient", async () => {
-        const result = await logDocumentOpened({document: {...document, recipients: []}, openedAt})
+        const result = await logDocumentActivity({
+            activitySlug: "pandadoc_document_opens",
+            document: {...document, recipients: []},
+            occurredAt,
+        })
 
         expect(result).toEqual(complete(undefined))
         expect(attioClient.post).not.toHaveBeenCalled()

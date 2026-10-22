@@ -11,8 +11,8 @@ const {verifyPandadocWebhookSignature} = vi.hoisted(() => ({
 }))
 vi.mock("../../pandadoc/verify-webhook-signature", () => ({verifyPandadocWebhookSignature}))
 
-const {logDocumentOpened} = vi.hoisted(() => ({logDocumentOpened: vi.fn()}))
-vi.mock("../../activities/log-document-opened", () => ({logDocumentOpened}))
+const {logDocumentActivity} = vi.hoisted(() => ({logDocumentActivity: vi.fn()}))
+vi.mock("../../activities/log-document-activity", () => ({logDocumentActivity}))
 
 import documentActivityWebhook from "./document-activity.webhook"
 
@@ -38,26 +38,40 @@ describe(documentActivityWebhook, () => {
     beforeEach(async () => {
         verifyPandadocWebhookSignature.mockReset()
         verifyPandadocWebhookSignature.mockResolvedValue(true)
-        logDocumentOpened.mockReset()
-        logDocumentOpened.mockResolvedValue(complete(undefined))
+        logDocumentActivity.mockReset()
+        logDocumentActivity.mockResolvedValue(complete(undefined))
         await kv.set(ACTIVITY_WEBHOOK_SHARED_KEY_KV_KEY, "shared-key")
     })
 
-    it("logs an opened activity only for documents that changed to viewed", async () => {
+    it.each([
+        {status: "document.viewed", activitySlug: "pandadoc_document_opens"},
+        {status: "document.declined", activitySlug: "pandadoc_document_declines"},
+    ])(
+        "logs a $activitySlug activity for a document that changed to $status",
+        async ({status, activitySlug}) => {
+            const response = await documentActivityWebhook(
+                buildRequest({body: [stateChanged(status)], eventId: `evt-${status}`})
+            )
+
+            expect(response.status).toBe(200)
+            expect(logDocumentActivity).toHaveBeenCalledTimes(1)
+            expect(logDocumentActivity.mock.calls[0][0]).toMatchObject({
+                activitySlug,
+                document: {id: `doc-${status}`},
+            })
+        }
+    )
+
+    it("logs nothing for other statuses and events", async () => {
         const response = await documentActivityWebhook(
             buildRequest({
-                body: [
-                    stateChanged("document.viewed"),
-                    stateChanged("document.completed"),
-                    {event: "recipient_completed", data: {}},
-                ],
-                eventId: "evt-viewed",
+                body: [stateChanged("document.sent"), {event: "recipient_completed", data: {}}],
+                eventId: "evt-ignored",
             })
         )
 
         expect(response.status).toBe(200)
-        expect(logDocumentOpened).toHaveBeenCalledTimes(1)
-        expect(logDocumentOpened.mock.calls[0][0].document.id).toBe("doc-document.viewed")
+        expect(logDocumentActivity).not.toHaveBeenCalled()
     })
 
     it("timestamps the activity with the document's date_modified", async () => {
@@ -78,7 +92,7 @@ describe(documentActivityWebhook, () => {
             })
         )
 
-        expect(logDocumentOpened.mock.calls[0][0].openedAt).toEqual(
+        expect(logDocumentActivity.mock.calls[0][0].occurredAt).toEqual(
             new Date("2026-09-25T11:21:03.518550Z")
         )
     })
@@ -91,11 +105,11 @@ describe(documentActivityWebhook, () => {
         )
 
         expect(response.status).toBe(200)
-        expect(logDocumentOpened).not.toHaveBeenCalled()
+        expect(logDocumentActivity).not.toHaveBeenCalled()
     })
 
     it("fails without marking the delivery processed when logging fails, so a retry logs it", async () => {
-        logDocumentOpened.mockResolvedValueOnce(errored({code: "ATTIO_API_ERROR"}))
+        logDocumentActivity.mockResolvedValueOnce(errored({code: "ATTIO_API_ERROR"}))
 
         const response = await documentActivityWebhook(
             buildRequest({body: [stateChanged("document.viewed")], eventId: "evt-failed"})
