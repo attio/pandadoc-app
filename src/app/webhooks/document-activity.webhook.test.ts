@@ -69,6 +69,7 @@ describe(documentActivityWebhook, () => {
         {status: "document.viewed", activitySlug: "pandadoc_document_opens"},
         {status: "document.declined", activitySlug: "pandadoc_document_declines"},
         {status: "document.completed", activitySlug: "pandadoc_document_completions"},
+        {status: "document.sent", activitySlug: "pandadoc_document_sends"},
     ])(
         "logs a $activitySlug activity for a document that changed to $status",
         async ({status, activitySlug}) => {
@@ -85,10 +86,27 @@ describe(documentActivityWebhook, () => {
         }
     )
 
+    it("passes the sender only for a document that changed to document.sent", async () => {
+        const withSender = (status: string) => {
+            const event = stateChanged(status)
+            return {...event, data: {...event.data, sent_by: {email: "sender@example.com"}}}
+        }
+
+        await documentActivityWebhook(
+            buildRequest({
+                body: [withSender("document.sent"), withSender("document.viewed")],
+                eventId: "evt-sent-by",
+            })
+        )
+
+        expect(logDocumentActivity.mock.calls[0][0].sentByEmail).toBe("sender@example.com")
+        expect(logDocumentActivity.mock.calls[1][0].sentByEmail).toBeUndefined()
+    })
+
     it("logs nothing for other statuses and events", async () => {
         const response = await documentActivityWebhook(
             buildRequest({
-                body: [stateChanged("document.sent"), {event: "document_updated", data: {}}],
+                body: [stateChanged("document.draft"), {event: "document_updated", data: {}}],
                 eventId: "evt-ignored",
             })
         )

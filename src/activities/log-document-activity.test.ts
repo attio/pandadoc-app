@@ -20,6 +20,9 @@ const postedLinkedRecords = (call = 0) =>
     (attioClient.post.mock.calls[call][1] as {data: {values: {linked_records: unknown}}}).data
         .values.linked_records
 
+const postedValues = (call = 0) =>
+    (attioClient.post.mock.calls[call][1] as {data: {values: Record<string, unknown>}}).data.values
+
 const recipientReference = (ifUnmatched: "create" | "ignore") => ({
     target_object: "people",
     target_record_reference: {
@@ -27,6 +30,21 @@ const recipientReference = (ifUnmatched: "create" | "ignore") => ({
         if_unmatched: ifUnmatched,
     },
 })
+
+const senderReference = {
+    target_object: "people",
+    target_record_reference: {
+        match: {email_addresses: "sender@example.com"},
+        if_unmatched: "create",
+    },
+}
+
+const sent = {
+    activitySlug: "pandadoc_document_sends",
+    document: {...document, status: "document.sent"},
+    occurredAt,
+    sentByEmail: "sender@example.com",
+}
 
 describe(logDocumentActivity, () => {
     beforeEach(() => {
@@ -64,6 +82,43 @@ describe(logDocumentActivity, () => {
         expect(attioClient.post).toHaveBeenCalledTimes(2)
         expect(postedLinkedRecords(0)).toEqual([recipientReference("create")])
         expect(postedLinkedRecords(1)).toEqual([recipientReference("ignore")])
+    })
+
+    it("links the sender first and references them as sent by", async () => {
+        await logDocumentActivity(sent)
+
+        expect(postedValues().linked_records).toEqual([
+            senderReference,
+            recipientReference("create"),
+        ])
+        expect(postedValues().sent_by).toEqual([senderReference])
+    })
+
+    it("links a sender who is also a recipient once", async () => {
+        await logDocumentActivity({
+            ...sent,
+            document: {...sent.document, recipients: [{email: "Sender@example.com"}]},
+        })
+
+        expect(postedValues().linked_records).toEqual([senderReference])
+    })
+
+    it("writes no sent by without a sender", async () => {
+        await logDocumentActivity({activitySlug: "pandadoc_document_opens", document, occurredAt})
+
+        expect(postedValues()).not.toHaveProperty("sent_by")
+    })
+
+    it("still creates the sender when Attio rejects creating that many", async () => {
+        attioClient.post.mockResolvedValueOnce(errored({code: "LIMIT_REACHED"}))
+
+        await logDocumentActivity(sent)
+
+        expect(postedValues(1).linked_records).toEqual([
+            senderReference,
+            recipientReference("ignore"),
+        ])
+        expect(postedValues(1).sent_by).toEqual([senderReference])
     })
 
     it("returns any other write error without trying again", async () => {

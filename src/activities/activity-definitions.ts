@@ -18,6 +18,7 @@ export const DOCUMENT_OPENED_ACTIVITY_SLUG = "pandadoc_document_opens"
 export const RECIPIENT_COMPLETED_ACTIVITY_SLUG = "pandadoc_document_recipient_completions"
 export const DOCUMENT_DECLINED_ACTIVITY_SLUG = "pandadoc_document_declines"
 export const DOCUMENT_COMPLETED_ACTIVITY_SLUG = "pandadoc_document_completions"
+export const DOCUMENT_SENT_ACTIVITY_SLUG = "pandadoc_document_sends"
 
 const DOCUMENT_ATTRIBUTES: AttributeDefinition[] = [
     {
@@ -81,5 +82,21 @@ export const ACTIVITY_DEFINITIONS: ActivityDefinition[] = [
         pluralNoun: "Document completions",
         extends: "activities",
         attributes: DOCUMENT_ATTRIBUTES,
+    },
+    {
+        apiSlug: DOCUMENT_SENT_ACTIVITY_SLUG,
+        singularNoun: "Document send",
+        pluralNoun: "Document sends",
+        extends: "activities",
+        attributes: [
+            ...DOCUMENT_ATTRIBUTES,
+            {
+                apiSlug: "sent_by",
+                title: "Sent by",
+                description: "The person who sent the document.",
+                type: "record-reference",
+                allowedObjects: ["people"],
+            },
+        ],
     },
 ]

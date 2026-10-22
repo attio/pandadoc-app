@@ -8,6 +8,7 @@ import {
     DOCUMENT_COMPLETED_ACTIVITY_SLUG,
     DOCUMENT_DECLINED_ACTIVITY_SLUG,
     DOCUMENT_OPENED_ACTIVITY_SLUG,
+    DOCUMENT_SENT_ACTIVITY_SLUG,
 } from "../../activities/activity-definitions"
 import {logDocumentActivity} from "../../activities/log-document-activity"
 import {logRecipientCompletedActivity} from "../../activities/log-recipient-completed-activity"
@@ -30,6 +31,7 @@ const ACTIVITY_SLUG_BY_STATUS: Record<string, string> = {
     "document.viewed": DOCUMENT_OPENED_ACTIVITY_SLUG,
     "document.declined": DOCUMENT_DECLINED_ACTIVITY_SLUG,
     "document.completed": DOCUMENT_COMPLETED_ACTIVITY_SLUG,
+    "document.sent": DOCUMENT_SENT_ACTIVITY_SLUG,
 }
 
 /** Logs the activity for one event. Events that aren't logged, or don't parse, are skipped. */
@@ -57,6 +59,10 @@ async function logEventActivity(event: {
             activitySlug,
             document: document.data,
             occurredAt: new Date(document.data.date_modified),
+            sentByEmail:
+                activitySlug === DOCUMENT_SENT_ACTIVITY_SLUG
+                    ? document.data.sent_by?.email
+                    : undefined,
         })
     }
 

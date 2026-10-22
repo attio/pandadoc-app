@@ -15,6 +15,7 @@ export const webhookDocumentSchema = z.object({
     // PandaDoc sends this as an explicit `null`, not an omitted key, for documents not
     // created from a template.
     template: z.object({id: z.string()}).nullish(),
+    sent_by: z.object({email: z.string()}).nullish(),
 })
 
 /**
