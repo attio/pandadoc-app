@@ -14,6 +14,13 @@ vi.mock("../../pandadoc/verify-webhook-signature", () => ({verifyPandadocWebhook
 const {logDocumentActivity} = vi.hoisted(() => ({logDocumentActivity: vi.fn()}))
 vi.mock("../../activities/log-document-activity", () => ({logDocumentActivity}))
 
+const {logRecipientCompletedActivity} = vi.hoisted(() => ({
+    logRecipientCompletedActivity: vi.fn(),
+}))
+vi.mock("../../activities/log-recipient-completed-activity", () => ({
+    logRecipientCompletedActivity,
+}))
+
 import documentActivityWebhook from "./document-activity.webhook"
 
 function buildRequest({body, eventId}: {body: unknown; eventId: string}): Request {
@@ -34,12 +41,27 @@ const stateChanged = (status: string) => ({
     },
 })
 
+const recipientCompleted = {
+    event: "recipient_completed",
+    data: {
+        id: "doc-1",
+        name: "Proposal",
+        status: "document.completed",
+        date_modified: "2026-09-25T11:21:03.518550Z",
+        recipients: [{email: "signer@example.com", recipient_type: "signer", roles: ["Client"]}],
+        action_by: {email: "signer@example.com"},
+        action_date: "2026-09-25T11:20:00.000000Z",
+    },
+}
+
 describe(documentActivityWebhook, () => {
     beforeEach(async () => {
         verifyPandadocWebhookSignature.mockReset()
         verifyPandadocWebhookSignature.mockResolvedValue(true)
         logDocumentActivity.mockReset()
         logDocumentActivity.mockResolvedValue(complete(undefined))
+        logRecipientCompletedActivity.mockReset()
+        logRecipientCompletedActivity.mockResolvedValue(complete(undefined))
         await kv.set(ACTIVITY_WEBHOOK_SHARED_KEY_KV_KEY, "shared-key")
     })
 
@@ -65,7 +87,7 @@ describe(documentActivityWebhook, () => {
     it("logs nothing for other statuses and events", async () => {
         const response = await documentActivityWebhook(
             buildRequest({
-                body: [stateChanged("document.sent"), {event: "recipient_completed", data: {}}],
+                body: [stateChanged("document.sent"), {event: "document_updated", data: {}}],
                 eventId: "evt-ignored",
             })
         )
@@ -94,6 +116,17 @@ describe(documentActivityWebhook, () => {
 
         expect(logDocumentActivity.mock.calls[0][0].occurredAt).toEqual(
             new Date("2026-09-25T11:21:03.518550Z")
+        )
+    })
+
+    it("logs the recipient completed activity for a recipient_completed event", async () => {
+        const response = await documentActivityWebhook(
+            buildRequest({body: [recipientCompleted], eventId: "evt-recipient-completed"})
+        )
+
+        expect(response.status).toBe(200)
+        expect(logRecipientCompletedActivity).toHaveBeenCalledWith(
+            expect.objectContaining({id: "doc-1", action_by: {email: "signer@example.com"}})
         )
     })
 

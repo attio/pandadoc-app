@@ -1,4 +1,4 @@
-import {isErrored} from "@attio/fetchable"
+import {type AsyncResult, complete, isErrored} from "@attio/fetchable"
 import {kv} from "attio/server"
 import {
     ACTIVITY_WEBHOOK_SHARED_KEY_KV_KEY,
@@ -9,11 +9,13 @@ import {
     DOCUMENT_OPENED_ACTIVITY_SLUG,
 } from "../../activities/activity-definitions"
 import {logDocumentActivity} from "../../activities/log-document-activity"
+import {logRecipientCompletedActivity} from "../../activities/log-recipient-completed-activity"
+import type {AttioApiError} from "../../attio/error"
 import {verifyPandadocWebhookSignature} from "../../pandadoc/verify-webhook-signature"
 import {
     mixedEventsWebhookBodySchema,
+    recipientCompletedDataSchema,
     webhookDocumentSchema,
-    type WebhookDocument,
 } from "../../pandadoc/webhook-payload-schema"
 import {createLogger} from "../../utils/logger"
 
@@ -28,25 +30,46 @@ const ACTIVITY_SLUG_BY_STATUS: Record<string, string> = {
     "document.declined": DOCUMENT_DECLINED_ACTIVITY_SLUG,
 }
 
-function documentActivities(
-    events: {event: string; data: unknown}[]
-): {activitySlug: string; document: WebhookDocument}[] {
-    return events.flatMap((event) => {
-        if (event.event !== "document_state_changed") {
-            return []
-        }
-
+/** Logs the activity for one event. Events that aren't logged, or don't parse, are skipped. */
+async function logEventActivity(event: {
+    event: string
+    data: unknown
+}): AsyncResult<void, AttioApiError> {
+    if (event.event === "document_state_changed") {
         const document = webhookDocumentSchema.safeParse(event.data)
 
         if (!document.success) {
             logger.error("Unexpected PandaDoc document_state_changed payload", document.error)
-            return []
+            return complete(undefined)
         }
 
         const activitySlug = ACTIVITY_SLUG_BY_STATUS[document.data.status]
 
-        return activitySlug ? [{activitySlug, document: document.data}] : []
-    })
+        if (!activitySlug) {
+            return complete(undefined)
+        }
+
+        // date_modified tracked each status change in tested deliveries, and unlike the delivery
+        // time it isn't delayed by retries.
+        return logDocumentActivity({
+            activitySlug,
+            document: document.data,
+            occurredAt: new Date(document.data.date_modified),
+        })
+    }
+
+    if (event.event === "recipient_completed") {
+        const data = recipientCompletedDataSchema.safeParse(event.data)
+
+        if (!data.success) {
+            logger.error("Unexpected PandaDoc recipient_completed payload", data.error)
+            return complete(undefined)
+        }
+
+        return logRecipientCompletedActivity(data.data)
+    }
+
+    return complete(undefined)
 }
 
 export default async function documentActivityWebhook(req: Request): Promise<Response> {
@@ -94,19 +117,13 @@ export default async function documentActivityWebhook(req: Request): Promise<Res
 
     // A delivery is an array that may hold more than one event.
     // @see https://developers.pandadoc.com/docs/webhook-setup#limits
-    for (const {activitySlug, document} of documentActivities(parsed.data)) {
-        // date_modified tracked each status change in tested deliveries, and unlike the delivery
-        // time it isn't delayed by retries.
-        const result = await logDocumentActivity({
-            activitySlug,
-            document,
-            occurredAt: new Date(document.date_modified),
-        })
+    for (const event of parsed.data) {
+        const result = await logEventActivity(event)
 
         // Not marked processed, so PandaDoc's retry of this delivery can log it.
         if (isErrored(result)) {
             logger.error("Failed to log a PandaDoc document activity", {
-                activitySlug,
+                event: event.event,
                 code: result.error.code,
             })
             return new Response(null, {status: 500})

@@ -2,68 +2,12 @@ import {type AsyncResult, complete, isErrored} from "@attio/fetchable"
 import {attioClient} from "../attio/client"
 import {endpoints} from "../attio/endpoints"
 import type {AttioApiError} from "../attio/error"
-import {
-    CUSTOM_OBJECT_METADATA_KEY,
-    splitCustomObjectMetadataValue,
-} from "../custom-objects/custom-object-metadata-key"
-import {DEAL_METADATA_KEY} from "../deals/deal-metadata-key"
 import {endpoints as pandadocEndpoints} from "../pandadoc/endpoints"
 import type {WebhookDocument} from "../pandadoc/webhook-payload-schema"
 import {createLogger} from "../utils/logger"
+import {findLinkedRecords, type LinkedRecord} from "./find-linked-records"
 
 const logger = createLogger("log document activity")
-
-type IfUnmatched = "create" | "ignore"
-
-type LinkedRecord =
-    | {target_object: string; target_record_id: string}
-    | {
-          target_object: "people"
-          target_record_reference: {
-              match: {email_addresses: string}
-              if_unmatched: IfUnmatched
-          }
-      }
-
-/**
- * Collects the Attio records to link the activity to: the deal or custom-object record in the
- * document's metadata, and a person for each recipient, matched by email. `ifUnmatched` sets
- * whether a recipient who isn't a person yet is created or left out.
- */
-function findLinkedRecords(document: WebhookDocument, ifUnmatched: IfUnmatched): LinkedRecord[] {
-    const metadata = document.metadata ?? {}
-    const linkedRecords: LinkedRecord[] = []
-
-    const dealId = metadata[DEAL_METADATA_KEY]
-
-    if (dealId) {
-        linkedRecords.push({target_object: "deals", target_record_id: dealId})
-    }
-
-    const customObjectValue = metadata[CUSTOM_OBJECT_METADATA_KEY]
-    const customObject = customObjectValue
-        ? splitCustomObjectMetadataValue(customObjectValue)
-        : undefined
-
-    if (customObject) {
-        linkedRecords.push({
-            target_object: customObject.slug,
-            target_record_id: customObject.recordId,
-        })
-    }
-
-    for (const recipient of document.recipients ?? []) {
-        linkedRecords.push({
-            target_object: "people",
-            target_record_reference: {
-                match: {email_addresses: recipient.email},
-                if_unmatched: ifUnmatched,
-            },
-        })
-    }
-
-    return linkedRecords
-}
 
 function writeDocumentActivity({
     activitySlug,

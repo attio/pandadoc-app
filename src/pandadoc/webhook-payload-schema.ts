@@ -17,6 +17,26 @@ export const webhookDocumentSchema = z.object({
     template: z.object({id: z.string()}).nullish(),
 })
 
+/**
+ * The data of a `recipient_completed` event: the document plus the recipient who completed it.
+ * `action_by` only reliably carries the recipient's email, so their type and roles are read from
+ * their entry in `recipients`.
+ *
+ * @see https://developers.pandadoc.com/reference/handlerecipientcompleteddocument
+ */
+export const recipientCompletedDataSchema = webhookDocumentSchema.extend({
+    recipients: z.array(
+        webhookRecipientSchema.extend({
+            recipient_type: z.string(),
+            roles: z.array(z.string()),
+        })
+    ),
+    action_by: z.object({email: z.string()}),
+    action_date: z.string(),
+})
+
+export type RecipientCompletedData = z.infer<typeof recipientCompletedDataSchema>
+
 const webhookEventSchema = z.object({
     event: z.string(),
     data: webhookDocumentSchema,
