@@ -3,6 +3,7 @@ export type AttioApiError =
     | {code: "UNAUTHORIZED"}
     | {code: "FORBIDDEN"}
     | {code: "INVALID_REQUEST"}
+    | {code: "LIMIT_REACHED"}
     | {code: "CONFLICT"}
     | {code: "RATE_LIMITED"}
     | {code: "ATTIO_API_ERROR"}

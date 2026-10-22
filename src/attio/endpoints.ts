@@ -14,5 +14,8 @@ export const endpoints = {
 
         activityAttributes: (activity: string) =>
             `${ATTIO_API_BASE_URL}/v2/activities/${encodeURIComponent(activity)}/attributes`,
+
+        activityRecords: (activity: string) =>
+            `${ATTIO_API_BASE_URL}/v2/activities/${encodeURIComponent(activity)}/records`,
     },
 } as const

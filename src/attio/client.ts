@@ -1,32 +1,36 @@
 import {type AsyncResult, complete, errored, fromPromise, isErrored} from "@attio/fetchable"
 import {ATTIO_API_TOKEN} from "attio/server"
-import type {z} from "zod"
+import {z} from "zod"
 
 import {createLogger} from "../utils/logger"
 import type {AttioApiError} from "./error"
 
 const logger = createLogger("attio client")
 
-async function readErrorMessage(response: Response): Promise<string> {
+const errorBodySchema = z.object({
+    code: z.string().optional(),
+    message: z.string().optional(),
+})
+
+async function readErrorBody(response: Response): Promise<{code?: string; message: string}> {
     try {
-        const body = (await response.json()) as unknown
-        if (
-            typeof body === "object" &&
-            body !== null &&
-            "message" in body &&
-            typeof body.message === "string"
-        ) {
-            return body.message
+        const body = errorBodySchema.safeParse(await response.json())
+        if (body.success) {
+            return {
+                code: body.data.code,
+                message: body.data.message ?? `HTTP ${response.status}`,
+            }
         }
     } catch {
         // fall through to default
     }
-    return `HTTP ${response.status}`
+    return {message: `HTTP ${response.status}`}
 }
 
-function httpStatusToAttioApiError(status: number): AttioApiError {
+function httpStatusToAttioApiError(status: number, code: string | undefined): AttioApiError {
     switch (status) {
         case 400:
+            return code === "limit_reached" ? {code: "LIMIT_REACHED"} : {code: "INVALID_REQUEST"}
         case 422:
             return {code: "INVALID_REQUEST"}
         case 401:
@@ -76,10 +80,10 @@ async function attioRequest(
     }
 
     if (!httpResponse.ok) {
-        const error = httpStatusToAttioApiError(httpResponse.status)
-        const message = await readErrorMessage(httpResponse)
+        const body = await readErrorBody(httpResponse)
+        const error = httpStatusToAttioApiError(httpResponse.status, body.code)
         logger.error(
-            `${method} ${url} failed with ${httpResponse.status} (${error.code}): ${message}`
+            `${method} ${url} failed with ${httpResponse.status} (${error.code}): ${body.message}`
         )
         return errored(error)
     }

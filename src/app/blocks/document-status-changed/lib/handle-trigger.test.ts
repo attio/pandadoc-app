@@ -69,7 +69,13 @@ describe(handleDocumentStatusChangedTrigger, () => {
         const body = [
             {
                 event: "document_state_changed",
-                data: {id: "doc-1", name: "Doc", status: "document.viewed", recipients: []},
+                data: {
+                    id: "doc-1",
+                    name: "Doc",
+                    status: "document.viewed",
+                    recipients: [],
+                    date_modified: "2026-09-25T11:21:03.518550Z",
+                },
             },
         ]
 
@@ -87,7 +93,13 @@ describe(handleDocumentStatusChangedTrigger, () => {
         const body = [
             {
                 event: "document_state_changed",
-                data: {id: "doc-1", name: "Doc", status: "document.completed", recipients: []},
+                data: {
+                    id: "doc-1",
+                    name: "Doc",
+                    status: "document.completed",
+                    recipients: [],
+                    date_modified: "2026-09-25T11:21:03.518550Z",
+                },
             },
         ]
 
@@ -118,6 +130,7 @@ describe(handleDocumentStatusChangedTrigger, () => {
                     status: "document.completed",
                     recipients: [],
                     template: null,
+                    date_modified: "2026-09-25T11:21:03.518550Z",
                 },
             },
         ]
@@ -141,11 +154,23 @@ describe(handleDocumentStatusChangedTrigger, () => {
         const body = [
             {
                 event: "document_state_changed",
-                data: {id: "doc-1", name: "First", status: "document.completed", recipients: []},
+                data: {
+                    id: "doc-1",
+                    name: "First",
+                    status: "document.completed",
+                    recipients: [],
+                    date_modified: "2026-09-25T11:21:03.518550Z",
+                },
             },
             {
                 event: "document_state_changed",
-                data: {id: "doc-2", name: "Second", status: "document.completed", recipients: []},
+                data: {
+                    id: "doc-2",
+                    name: "Second",
+                    status: "document.completed",
+                    recipients: [],
+                    date_modified: "2026-09-25T11:21:03.518550Z",
+                },
             },
         ]
 

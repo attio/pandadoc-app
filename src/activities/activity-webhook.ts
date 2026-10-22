@@ -20,6 +20,10 @@ const ACTIVITY_WEBHOOK_FILE_NAME = "document-activity"
 /** One subscription per workspace, so its shared key lives under a single key. */
 export const ACTIVITY_WEBHOOK_SHARED_KEY_KV_KEY = "pandadoc-activity-webhook-shared-key"
 
+/** KV key marking an activity webhook delivery (by its X-PandaDoc-Webhook-Event-Id) as handled. */
+export const activityWebhookProcessedEventKvKey = (eventId: string): string =>
+    `pandadoc-activity-webhook-processed-event:${eventId}`
+
 /**
  * Deletes every activity webhook handler and the PandaDoc subscription behind it. Failures are
  * logged, not returned, so a subscription PandaDoc already dropped can't block the rest.

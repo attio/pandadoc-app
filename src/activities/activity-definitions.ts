@@ -14,6 +14,8 @@ export type ActivityDefinition = {
     attributes: AttributeDefinition[]
 }
 
+export const DOCUMENT_OPENED_ACTIVITY_SLUG = "pandadoc_document_opens"
+
 const DOCUMENT_ATTRIBUTES: AttributeDefinition[] = [
     {
         apiSlug: "document_url",
@@ -29,7 +31,7 @@ const DOCUMENT_ATTRIBUTES: AttributeDefinition[] = [
  */
 export const ACTIVITY_DEFINITIONS: ActivityDefinition[] = [
     {
-        apiSlug: "pandadoc_document_opens",
+        apiSlug: DOCUMENT_OPENED_ACTIVITY_SLUG,
         singularNoun: "Document open",
         pluralNoun: "Document opens",
         extends: "activities",

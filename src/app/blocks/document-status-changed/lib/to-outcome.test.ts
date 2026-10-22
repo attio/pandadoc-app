@@ -8,6 +8,7 @@ function buildDocument(overrides: Partial<WebhookDocument> = {}): WebhookDocumen
         name: "Sales Agreement",
         status: "document.completed",
         date_completed: "2024-07-08T15:43:53.877522Z",
+        date_modified: "2024-07-08T15:43:53.877522Z",
         metadata: {},
         recipients: [],
         ...overrides,

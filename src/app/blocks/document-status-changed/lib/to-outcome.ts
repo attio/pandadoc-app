@@ -1,5 +1,8 @@
 import type {WebhookDocument} from "../../../../pandadoc/webhook-payload-schema"
-import {CUSTOM_OBJECT_METADATA_KEY} from "../../../../custom-objects/custom-object-metadata-key"
+import {
+    CUSTOM_OBJECT_METADATA_KEY,
+    splitCustomObjectMetadataValue,
+} from "../../../../custom-objects/custom-object-metadata-key"
 import {DEAL_METADATA_KEY} from "../../../../deals/deal-metadata-key"
 
 export type DocumentStatusChangedOutcome = {
@@ -11,21 +14,6 @@ export type DocumentStatusChangedOutcome = {
     deal_id?: string
     custom_object_slug?: string
     custom_object_record_id?: string
-}
-
-function splitCustomObjectMetadataValue(
-    value: string
-): {slug: string; recordId: string} | undefined {
-    const separatorIndex = value.indexOf(".")
-
-    if (separatorIndex === -1) {
-        return undefined
-    }
-
-    return {
-        slug: value.slice(0, separatorIndex),
-        recordId: value.slice(separatorIndex + 1),
-    }
 }
 
 export function buildDocumentStatusChangedOutcome(
