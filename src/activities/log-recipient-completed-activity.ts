@@ -12,8 +12,10 @@ const logger = createLogger("log recipient completed activity")
 
 /**
  * Writes an activity for the recipient who completed their part of a document, with `action_date`
- * as its timestamp. It's linked to every recipient, and `recipient` says which one completed. That
- * recipient is always created as a person when they aren't one yet.
+ * as its timestamp. It's linked to every recipient, and `recipient` says which one completed. Like
+ * every recipient, the completing one is linked as a person and always created when they aren't one
+ * yet, even when their email belongs to a workspace member, since Attio never links members in
+ * `linked_records`.
  */
 export async function logRecipientCompletedActivity(
     data: RecipientCompletedData
@@ -24,7 +26,7 @@ export async function logRecipientCompletedActivity(
         ({email}) => email.toLowerCase() === actionBy.email.toLowerCase()
     )
     const recipientRole = recipient?.roles.filter(Boolean).join(", ")
-    // The email as it's linked, so Attio merges the two references and creates the person once.
+    // Their email as listed in recipients, or action_by's when they aren't listed.
     const recipientEmail = recipient?.email ?? actionBy.email
 
     const writeActivity = (ifUnmatched: IfUnmatched) =>
@@ -42,7 +44,9 @@ export async function logRecipientCompletedActivity(
                             )
                         ),
                     ],
-                    recipient: [personReference(recipientEmail, "create")],
+                    // A plain email, so Attio links the workspace member with that email if there is
+                    // one, and otherwise the person.
+                    recipient: [recipientEmail],
                     document_url: pandadocEndpoints.documentWebUrl(document.id),
                     ...(recipient ? {recipient_type: recipient.recipient_type} : {}),
                     ...(recipientRole ? {recipient_role: recipientRole} : {}),

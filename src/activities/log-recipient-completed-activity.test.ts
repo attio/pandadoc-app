@@ -50,7 +50,7 @@ describe(logRecipientCompletedActivity, () => {
                             personReference("other@example.com", "create"),
                             personReference("Signer@example.com", "create"),
                         ],
-                        recipient: [personReference("Signer@example.com", "create")],
+                        recipient: ["Signer@example.com"],
                         document_url: "https://app.pandadoc.com/a/#/documents/doc-1",
                         recipient_type: "signer",
                         recipient_role: "Client",
@@ -66,9 +66,7 @@ describe(logRecipientCompletedActivity, () => {
             action_by: {email: "unlisted@example.com"},
         })
 
-        expect(postedValues().recipient).toEqual([
-            personReference("unlisted@example.com", "create"),
-        ])
+        expect(postedValues().recipient).toEqual(["unlisted@example.com"])
         expect(postedValues()).not.toHaveProperty("recipient_type")
         expect(postedValues()).not.toHaveProperty("recipient_role")
     })
@@ -85,7 +83,7 @@ describe(logRecipientCompletedActivity, () => {
             personReference("other@example.com", "ignore"),
             personReference("Signer@example.com", "create"),
         ])
-        expect(postedValues(1).recipient).toEqual([personReference("Signer@example.com", "create")])
+        expect(postedValues(1).recipient).toEqual(["Signer@example.com"])
     })
 
     it("returns any other write error without trying again", async () => {

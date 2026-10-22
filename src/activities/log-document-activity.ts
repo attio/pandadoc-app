@@ -16,9 +16,10 @@ import {
 const logger = createLogger("log document activity")
 
 /**
- * The records to link the activity to. A sender is linked first and always created, since
- * `sent_by` references them too. A sender who is also a recipient is linked once, since Attio
- * rejects an attribute that references the same person twice.
+ * The records to link the activity to. The sender is linked first as a person and always created,
+ * even when their email belongs to a workspace member, since Attio never links members in
+ * `linked_records`. A sender who is also a recipient is linked once, since Attio rejects an
+ * attribute that references the same person twice.
  */
 function findActivityLinkedRecords({
     document,
@@ -64,10 +65,9 @@ function writeDocumentActivity({
                 timestamp: occurredAt.toISOString(),
                 linked_records: linkedRecords,
                 document_url: pandadocEndpoints.documentWebUrl(document.id),
-                // Built like the sender's link, so Attio merges the two and creates them once.
-                ...(sentByEmail === undefined
-                    ? {}
-                    : {sent_by: [personReference(sentByEmail, "create")]}),
+                // A plain email, so Attio links the workspace member with that email if there is one,
+                // and otherwise the person, created if missing.
+                ...(sentByEmail === undefined ? {} : {sent_by: [sentByEmail]}),
             },
         },
     })
@@ -75,8 +75,8 @@ function writeDocumentActivity({
 
 /**
  * Writes an activity record of the given type onto the document's Attio records, creating a
- * person for each recipient who isn't one yet. Does nothing when the document has no linked
- * record or recipient, since an activity needs at least one linked record.
+ * person for each recipient who isn't one yet, workspace members included. Does nothing when the
+ * document has no linked record or recipient, since an activity needs at least one linked record.
  */
 export async function logDocumentActivity({
     activitySlug,

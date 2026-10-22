@@ -51,9 +51,10 @@ export const ACTIVITY_DEFINITIONS: ActivityDefinition[] = [
             {
                 apiSlug: "recipient",
                 title: "Recipient",
-                description: "The recipient who completed their part of the document.",
+                description:
+                    "The workspace member or person who completed their part of the document.",
                 type: "record-reference",
-                allowedObjects: ["people"],
+                allowedObjects: ["people", "workspace_members"],
             },
             {
                 apiSlug: "recipient_type",
@@ -93,9 +94,9 @@ export const ACTIVITY_DEFINITIONS: ActivityDefinition[] = [
             {
                 apiSlug: "sent_by",
                 title: "Sent by",
-                description: "The person who sent the document.",
+                description: "The workspace member or person who sent the document.",
                 type: "record-reference",
-                allowedObjects: ["people"],
+                allowedObjects: ["people", "workspace_members"],
             },
         ],
     },

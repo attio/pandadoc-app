@@ -84,14 +84,14 @@ describe(logDocumentActivity, () => {
         expect(postedLinkedRecords(1)).toEqual([recipientReference("ignore")])
     })
 
-    it("links the sender first and references them as sent by", async () => {
+    it("links the sender first and writes their email as sent by", async () => {
         await logDocumentActivity(sent)
 
         expect(postedValues().linked_records).toEqual([
             senderReference,
             recipientReference("create"),
         ])
-        expect(postedValues().sent_by).toEqual([senderReference])
+        expect(postedValues().sent_by).toEqual(["sender@example.com"])
     })
 
     it("links a sender who is also a recipient once", async () => {
@@ -118,7 +118,7 @@ describe(logDocumentActivity, () => {
             senderReference,
             recipientReference("ignore"),
         ])
-        expect(postedValues(1).sent_by).toEqual([senderReference])
+        expect(postedValues(1).sent_by).toEqual(["sender@example.com"])
     })
 
     it("returns any other write error without trying again", async () => {
