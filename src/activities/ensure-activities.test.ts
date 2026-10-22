@@ -25,7 +25,7 @@ vi.mock("./activity-definitions", () => ({
     ],
 }))
 
-import {ensureActivities} from "./ensure-activities"
+import {ensureActivities, ensureActivity} from "./ensure-activities"
 
 const postedSlugs = () =>
     attioClient.post.mock.calls.map(
@@ -80,5 +80,18 @@ describe(ensureActivities, () => {
         await ensureActivities()
 
         expect(attioClient.post).not.toHaveBeenCalled()
+    })
+
+    it("says whether setting up one activity created anything", async () => {
+        attioClient.get
+            .mockResolvedValueOnce(complete({data: {}}))
+            .mockResolvedValueOnce(complete({data: [{api_slug: "document_url"}]}))
+            .mockResolvedValueOnce(complete({data: {}}))
+            .mockResolvedValueOnce(
+                complete({data: [{api_slug: "document_url"}, {api_slug: "recipient"}]})
+            )
+
+        expect(await ensureActivity("pandadoc_document_opens")).toEqual(complete(true))
+        expect(await ensureActivity("pandadoc_document_opens")).toEqual(complete(false))
     })
 })

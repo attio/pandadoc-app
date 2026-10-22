@@ -25,7 +25,7 @@ type Connection = "user-connection" | "workspace-connection" | AttioConnection
 async function request<T>(
     method: "GET" | "POST" | "PUT" | "DELETE",
     url: string,
-    options?: {body?: unknown; connection?: Connection}
+    options?: {body?: unknown; connection?: Connection; signal?: AbortSignal}
 ): AsyncResult<PandadocApiResponse<T>, PandadocApiError> {
     // getUserConnection()/getWorkspaceConnection() throw a special error that powers the
     // connection dialog in the UI — it must propagate, not be swallowed by the try/catch below.
@@ -42,7 +42,7 @@ async function request<T>(
             Authorization: `Bearer ${resolvedConnection.value}`,
         }
 
-        const init: RequestInit = {method, headers}
+        const init: RequestInit = {method, headers, signal: options?.signal}
 
         if (options?.body !== undefined) {
             headers["Content-Type"] = "application/json"
@@ -81,7 +81,7 @@ async function get<T>(
 
 async function post<T>(
     url: string,
-    options?: {body?: unknown; connection?: Connection}
+    options?: {body?: unknown; connection?: Connection; signal?: AbortSignal}
 ): AsyncResult<PandadocApiResponse<T>, PandadocApiError> {
     return request<T>("POST", url, options)
 }
@@ -95,9 +95,10 @@ async function put<T>(
 
 async function del<T>(
     url: string,
-    connection?: Connection
+    connection?: Connection,
+    signal?: AbortSignal
 ): AsyncResult<PandadocApiResponse<T>, PandadocApiError> {
-    return request<T>("DELETE", url, {connection})
+    return request<T>("DELETE", url, {connection, signal})
 }
 
 export const pandadocApi = {

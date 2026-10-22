@@ -21,6 +21,9 @@ vi.mock("../../activities/log-recipient-completed-activity", () => ({
     logRecipientCompletedActivity,
 }))
 
+const {ensureActivity} = vi.hoisted(() => ({ensureActivity: vi.fn()}))
+vi.mock("../../activities/ensure-activities", () => ({ensureActivity}))
+
 import documentActivityWebhook from "./document-activity.webhook"
 
 function buildRequest({body, eventId}: {body: unknown; eventId: string}): Request {
@@ -62,6 +65,8 @@ describe(documentActivityWebhook, () => {
         logDocumentActivity.mockResolvedValue(complete(undefined))
         logRecipientCompletedActivity.mockReset()
         logRecipientCompletedActivity.mockResolvedValue(complete(undefined))
+        ensureActivity.mockReset()
+        ensureActivity.mockResolvedValue(complete(false))
         await kv.set(ACTIVITY_WEBHOOK_SHARED_KEY_KV_KEY, "shared-key")
     })
 
@@ -169,5 +174,49 @@ describe(documentActivityWebhook, () => {
 
         expect(response.status).toBe(500)
         expect(await kv.get(activityWebhookProcessedEventKvKey("evt-failed"))).toBeNull()
+    })
+
+    it("sets the activity up and logs it again when the write is rejected", async () => {
+        logDocumentActivity.mockResolvedValueOnce(errored({code: "INVALID_REQUEST"}))
+        ensureActivity.mockResolvedValueOnce(complete(true))
+
+        const response = await documentActivityWebhook(
+            buildRequest({body: [stateChanged("document.sent")], eventId: "evt-set-up"})
+        )
+
+        expect(response.status).toBe(200)
+        expect(ensureActivity).toHaveBeenCalledWith(
+            "pandadoc_document_sends",
+            expect.any(AbortSignal)
+        )
+        expect(logDocumentActivity).toHaveBeenCalledTimes(2)
+    })
+
+    it("fails without marking the delivery processed when setting up the activity runs out of time", async () => {
+        logDocumentActivity.mockResolvedValueOnce(errored({code: "INVALID_REQUEST"}))
+        ensureActivity.mockResolvedValueOnce(errored({code: "UNEXPECTED_ERROR"}))
+
+        const response = await documentActivityWebhook(
+            buildRequest({body: [stateChanged("document.sent")], eventId: "evt-out-of-time"})
+        )
+
+        expect(response.status).toBe(500)
+        expect(ensureActivity).toHaveBeenCalledWith(
+            "pandadoc_document_sends",
+            expect.any(AbortSignal)
+        )
+        expect(logDocumentActivity).toHaveBeenCalledTimes(1)
+        expect(await kv.get(activityWebhookProcessedEventKvKey("evt-out-of-time"))).toBeNull()
+    })
+
+    it("doesn't log again when the activity was already set up", async () => {
+        logDocumentActivity.mockResolvedValueOnce(errored({code: "INVALID_REQUEST"}))
+
+        const response = await documentActivityWebhook(
+            buildRequest({body: [stateChanged("document.sent")], eventId: "evt-already-set-up"})
+        )
+
+        expect(response.status).toBe(500)
+        expect(logDocumentActivity).toHaveBeenCalledTimes(1)
     })
 })

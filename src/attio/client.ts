@@ -51,8 +51,7 @@ function httpStatusToAttioApiError(status: number, code: string | undefined): At
 async function attioRequest(
     method: "GET" | "POST",
     url: string,
-    schema: z.ZodType | undefined,
-    body?: unknown
+    {schema, body, signal}: {schema?: z.ZodType; body?: unknown; signal?: AbortSignal}
 ): AsyncResult<unknown, AttioApiError> {
     const response = await fromPromise(
         fetch(url, {
@@ -63,6 +62,7 @@ async function attioRequest(
                 ...(body !== undefined ? {"Content-Type": "application/json"} : {}),
             },
             body: body !== undefined ? JSON.stringify(body) : undefined,
+            signal,
         })
     )
 
@@ -109,23 +109,45 @@ async function attioRequest(
     return complete(parsed.data)
 }
 
-function get(url: string): AsyncResult<unknown, AttioApiError>
+type RequestOptions = {signal?: AbortSignal}
+
+function get(
+    url: string,
+    schema?: undefined,
+    options?: RequestOptions
+): AsyncResult<unknown, AttioApiError>
 function get<TSchema extends z.ZodType>(
     url: string,
-    schema: TSchema
+    schema: TSchema,
+    options?: RequestOptions
 ): AsyncResult<z.infer<TSchema>, AttioApiError>
-function get(url: string, schema?: z.ZodType): AsyncResult<unknown, AttioApiError> {
-    return attioRequest("GET", url, schema)
+function get(
+    url: string,
+    schema?: z.ZodType,
+    options?: RequestOptions
+): AsyncResult<unknown, AttioApiError> {
+    return attioRequest("GET", url, {schema, signal: options?.signal})
 }
 
-function post(url: string, body: unknown): AsyncResult<unknown, AttioApiError>
+function post(
+    url: string,
+    body: unknown,
+    schema?: undefined,
+    options?: RequestOptions
+): AsyncResult<unknown, AttioApiError>
 function post<TSchema extends z.ZodType>(
     url: string,
     body: unknown,
-    schema: TSchema
+    schema: TSchema,
+    options?: RequestOptions
 ): AsyncResult<z.infer<TSchema>, AttioApiError>
-function post(url: string, body: unknown, schema?: z.ZodType): AsyncResult<unknown, AttioApiError> {
-    return attioRequest("POST", url, schema, body)
+function post(
+    url: string,
+    body: unknown,
+    schema?: z.ZodType,
+    options?: RequestOptions
+): AsyncResult<unknown, AttioApiError> {
+    return attioRequest("POST", url, {schema, body, signal: options?.signal})
 }
 
 export const attioClient = {get, post}

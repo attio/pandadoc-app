@@ -23,17 +23,20 @@ export async function createWebhookSubscription({
     url,
     triggers,
     connection = "workspace-connection",
+    signal,
 }: {
     name: string
     url: string
     triggers: PandadocWebhookTrigger[]
     connection?: "workspace-connection" | Connection
+    signal?: AbortSignal
 }): AsyncResult<PandadocWebhookSubscription, PandadocApiError> {
     const responseResult = await pandadocApi.post(endpoints.webhookSubscriptions, {
         // PandaDoc leaves metadata out of deliveries unless it's requested here, and the
         // Attio record ids are stored in it.
         body: {name, url, triggers, active: true, payload: ["metadata"]},
         connection,
+        signal,
     })
 
     if (isErrored(responseResult)) {
@@ -52,9 +55,14 @@ export async function createWebhookSubscription({
  */
 export async function deleteWebhookSubscription(
     id: string,
-    connection: "workspace-connection" | Connection = "workspace-connection"
+    connection: "workspace-connection" | Connection = "workspace-connection",
+    signal?: AbortSignal
 ): AsyncResult<void, PandadocApiError> {
-    const responseResult = await pandadocApi.delete(endpoints.webhookSubscription(id), connection)
+    const responseResult = await pandadocApi.delete(
+        endpoints.webhookSubscription(id),
+        connection,
+        signal
+    )
 
     if (isErrored(responseResult)) {
         return responseResult
