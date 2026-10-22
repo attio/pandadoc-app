@@ -1,5 +1,6 @@
 import {StatusBadge, DialogList} from "attio/client"
 
+import {endpoints} from "../pandadoc/endpoints"
 import type {PandadocDocument} from "../pandadoc/schemas"
 import {getStatusColor} from "./get-status-color"
 import {getStatusLabel} from "./get-status-label"
@@ -35,10 +36,7 @@ export function DocumentsList({
                         key={document.id}
                         icon="Note"
                         onTrigger={() => {
-                            window.open(
-                                `https://app.pandadoc.com/a/#/documents/${document.id}`,
-                                "_blank"
-                            )
+                            window.open(endpoints.documentWebUrl(document.id), "_blank")
                         }}
                         actionLabel="Open Document"
                         suffix={

@@ -1,5 +1,9 @@
 import {type AsyncResult, complete, errored} from "@attio/fetchable"
-import {getUserConnection, getWorkspaceConnection} from "attio/server"
+import {
+    type Connection as AttioConnection,
+    getUserConnection,
+    getWorkspaceConnection,
+} from "attio/server"
 import {createLogger} from "../utils/logger"
 import {type PandadocApiError, readPandadocApiError} from "./error"
 
@@ -14,7 +18,9 @@ type PandadocApiResponse<T> = {
     data: T | undefined
 }
 
-type Connection = "user-connection" | "workspace-connection"
+// A connection-added handler runs before its connection is saved, so getWorkspaceConnection()
+// can't return it yet. The handler passes the connection object instead.
+type Connection = "user-connection" | "workspace-connection" | AttioConnection
 
 async function request<T>(
     method: "GET" | "POST" | "PUT" | "DELETE",
@@ -24,9 +30,11 @@ async function request<T>(
     // getUserConnection()/getWorkspaceConnection() throw a special error that powers the
     // connection dialog in the UI — it must propagate, not be swallowed by the try/catch below.
     const resolvedConnection =
-        options?.connection === "workspace-connection"
-            ? await getWorkspaceConnection()
-            : await getUserConnection()
+        typeof options?.connection === "object"
+            ? options.connection
+            : options?.connection === "workspace-connection"
+              ? await getWorkspaceConnection()
+              : await getUserConnection()
 
     try {
         // Both the user and workspace connections are PandaDoc OAuth tokens.

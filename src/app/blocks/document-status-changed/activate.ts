@@ -11,6 +11,7 @@ export default Workflows.defineWorkflowBlockActivate(block, async ({metadata}) =
     const result = await createWebhookSubscription({
         name: `Attio - Document status changed (${uniqueActivationId})`,
         url: triggerCallbackUrl,
+        triggers: ["document_state_changed"],
     })
 
     if (isErrored(result)) {
